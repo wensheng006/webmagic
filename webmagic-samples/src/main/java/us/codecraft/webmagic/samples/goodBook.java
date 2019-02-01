@@ -25,27 +25,34 @@ import us.codecraft.webmagic.processor.PageProcessor;
 /**
  * @author code4crafter@gmail.com <br>
  */
-public class HuxiuProcessor implements PageProcessor {
+public class goodBook implements PageProcessor {
     @Override
     public void process(Page page) {
     	try {
     		String url =  page.getRequest().getUrl();
-            List<String> requests = page.getHtml().$("div[id=list]").links().all();
+            List<String> requests = page.getHtml().$("div[class=booklist]").links().all();
             
-            List<String> bookrequest = page.getHtml().$("div[class=box b1]").links().all();
+            List<String> bookrequest = page.getHtml().$("div[class=booklbz]").links().all();
             page.addTargetRequests(bookrequest) ;
             page.addTargetRequests(requests) ;
            
-            Object title = page.getHtml().xpath("//[@class='bookname']/h1/tidyText()").toString();
-            Object content = page.getHtml().xpath("//[@id='content']/tidyText()").toString();
-           
+            Object title = page.getHtml().xpath("//[@class='zwtitle']/h1/tidyText()").toString();
+            String content = page.getHtml().xpath("//[@class='zwcent']/tidyText()").toString();
+            List<String>  bookdir = page.getHtml().xpath("//[@class='mbxdh']/a[@rel='category tag']").links().all();
             Object bookname =null ;
-            
+         
             if(url.indexOf("html")<1){
-            	bookname = 	page.getHtml().xpath("//[@id='info']/h1/tidyText()").toString().trim();
+            	bookname = 	page.getHtml().xpath("//[@class='jianj']/b/a/tidyText()").toString().trim();
+            	bookname = bookname.toString().substring(0, bookname.toString().indexOf("<"));
             }
             page.putField("bookname",bookname);
             page.putField("title",title);
+            if(bookdir.size()>0){
+            	 String[]  dirs =  bookdir.get(0).split("/");
+            	 page.putField("bookdir",dirs[dirs.length-1]);
+            }
+            content = content.substring(0, content.indexOf("http")-5);
+            
             page.putField("content",content);
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -55,12 +62,12 @@ public class HuxiuProcessor implements PageProcessor {
 
     @Override
     public Site getSite() {
-        return Site.me().setDomain("www.biquyun.com").setSleepTime(3000).setCycleRetryTimes(10).setRetryTimes(10);
+        return Site.me().setDomain("www.mossiella.com").setSleepTime(3000).setCycleRetryTimes(10).setRetryTimes(10);
     }
 
     public static void main(String[] args) {
-        Spider.create(new HuxiuProcessor()).addUrl("http://www.biquyun.com/paihangbang/").addPipeline(new myFilePipeline("D:\\webmagic\\")).thread(10).run();
-    	//multiFileMerge("D:\\webmagic\\www.biquyun.com\\", "marge.txt", true);
+       // Spider.create(new goodBook()).addUrl("http://www.mossiella.com/guanchangxiaoshuo/").addPipeline(new GoodFilePipeline("D:\\webmagic\\")).thread(15).run();
+    	multiFileMerge("D:\\webmagic\\www.mossiella.com\\", "marge.txt", true);
     }
 
     
